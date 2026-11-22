@@ -1,5 +1,8 @@
 import { useStore } from "../store";
-import { IconChevronLeft, IconRefresh, IconSearch } from "./Icons";
+import { api } from "../lib/api";
+import { IconChevronLeft, IconCoffee, IconRefresh, IconSearch } from "./Icons";
+
+const SUPPORT_URL = "https://buymeacoffee.com/fabianbuilds";
 
 export function Topbar() {
   const view = useStore((s) => s.view);
@@ -29,13 +32,17 @@ export function Topbar() {
         </label>
       )}
       <div className="topbar__spacer" data-tauri-drag-region />
+      <button className="pill-btn" onClick={() => api.openUrl(SUPPORT_URL)} title="Support Appetizer">
+        <IconCoffee size={16} />
+        <span>Buy me a coffee</span>
+      </button>
       <button
-        className={`icon-btn ${checking ? "spinning" : ""}`}
+        className={`circle-btn ${checking ? "spinning" : ""}`}
         onClick={() => checkUpdates()}
         title="Check for updates"
         aria-label="Check for updates"
       >
-        <IconRefresh size={17} />
+        <IconRefresh size={16} />
       </button>
     </header>
   );

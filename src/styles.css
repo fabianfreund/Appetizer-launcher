@@ -349,6 +349,61 @@ p {
   color: var(--text);
 }
 
+.pill-btn,
+.circle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.pill-btn {
+  padding: 0 14px 0 12px;
+}
+
+.pill-btn svg {
+  color: var(--brand);
+}
+
+.circle-btn {
+  width: 36px;
+}
+
+.pill-btn:hover,
+.circle-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.pill-btn:hover {
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+}
+
+.pill-btn:active,
+.circle-btn:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 920px) {
+  .pill-btn span {
+    display: none;
+  }
+  .pill-btn {
+    width: 36px;
+    padding: 0;
+  }
+}
+
 .icon-btn.back {
   padding: 0 12px 0 6px;
   font-weight: 500;
