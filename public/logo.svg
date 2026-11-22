@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFB347"/>
+      <stop offset="0.55" stop-color="#FF6A3D"/>
+      <stop offset="1" stop-color="#E8336E"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="80" y="80" width="864" height="864" rx="200" fill="url(#bg)"/>
+  <rect x="80" y="80" width="864" height="432" rx="200" fill="url(#shine)"/>
+  <!-- plate -->
+  <path d="M232 600 h560 a280 140 0 0 1 -560 0z" fill="#fff"/>
+  <!-- three bites -->
+  <circle cx="400" cy="520" r="78" fill="#fff" opacity=".95"/>
+  <circle cx="624" cy="520" r="78" fill="#fff" opacity=".95"/>
+  <circle cx="512" cy="440" r="92" fill="#fff"/>
+  <!-- leaf -->
+  <path d="M512 352 c10 -70 60 -110 130 -112 c-6 70 -56 112 -130 112z" fill="#fff"/>
+</svg>
