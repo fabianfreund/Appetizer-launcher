@@ -6,7 +6,7 @@
 
 ![Appetizer: the Discover page](docs/assets/screenshot.png)
 
-> **Status:** early (v0.1.x). Available now: [OneShot](https://github.com/fabianfreund/OneShot), a screenshot tool. Clockodile (time tracking) and YapTap (local dictation) are coming soon.
+> **Status:** early (v0.1.x). Available now: [OneShot](https://github.com/fabianfreund/OneShot), a screenshot tool, and [Clockodile](https://github.com/fabianfreund/Clockodile), a time tracker. YapTap (local dictation) is coming soon.
 
 ## Download
 
@@ -31,7 +31,7 @@ Get the latest version from [Releases](https://github.com/fabianfreund/Appetizer
 | App | What it does | Platforms |
 |---|---|---|
 | [OneShot](https://github.com/fabianfreund/OneShot) | Capture, annotate and beautify screenshots | macOS, Windows, Linux |
-| Clockodile | Track time, bill clients, export clean PDF timesheets *(coming soon)* | macOS, Windows, Linux |
+| [Clockodile](https://github.com/fabianfreund/Clockodile) | Track time, bill clients, export clean PDF timesheets | macOS, Windows, Linux |
 | [YapTap](https://github.com/fabianfreund/YapTap) | Hold a key, talk, let go: fully local dictation *(coming soon)* | macOS, Windows, Linux |
 
 Want your app in Appetizer? Every app is a public GitHub repo with normal releases. See [Adding apps](docs/ADDING-APPS.md).
