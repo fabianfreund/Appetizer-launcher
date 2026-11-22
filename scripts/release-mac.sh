@@ -55,7 +55,13 @@ if [[ "${NOTARIZE:-1}" != "0" ]]; then
 fi
 
 # Updater bundle from the stapled app, signed with the updater key.
-tar -czf "$TARBALL" -C "$(dirname "$APP")" Appetizer.app
+# No AppleDouble "._*" entries: macOS tar adds them for xattrs and the Tauri updater can't unpack them.
+COPYFILE_DISABLE=1 tar --no-mac-metadata --no-xattrs -czf "$TARBALL" -C "$(dirname "$APP")" Appetizer.app
+python3 -I -c '
+import sys, tarfile
+bad = [m.name for m in tarfile.open(sys.argv[1]).getmembers() if m.name.rsplit("/", 1)[-1].startswith("._")]
+sys.exit(f"Updater bundle contains AppleDouble files: {bad[:3]}" if bad else 0)
+' "$TARBALL"
 pnpm tauri signer sign "$TARBALL" >/dev/null
 SIG=$(cat "$TARBALL.sig")
 
