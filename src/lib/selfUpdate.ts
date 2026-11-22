@@ -25,6 +25,10 @@ export async function checkSelfUpdate(currentVersion: string): Promise<SelfUpdat
 
 /** Downloads and installs. On Windows the installer closes the app itself. */
 export async function installSelfUpdate(onProgress: (p: number | null) => void): Promise<void> {
+  // Re-check right before installing so the signature always matches the file that's
+  // published now (a release asset may have been replaced since the last check).
+  const { check } = await import("@tauri-apps/plugin-updater");
+  pending = await check();
   if (!pending) return;
   let total = 0;
   let got = 0;
