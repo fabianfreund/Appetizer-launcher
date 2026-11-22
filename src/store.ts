@@ -71,9 +71,16 @@ interface State {
 
 const errText = (e: unknown) => (typeof e === "string" ? e : e instanceof Error ? e.message : String(e));
 
+// Same rule as AppRef::validate in Rust: ids and names end up in file paths.
+const PLAIN = /^(?!\.)[\p{L}\p{N} _.+-]{1,64}$/u;
+
 function validCatalog(v: unknown): v is Catalog {
   const c = v as Catalog;
-  return !!c && Array.isArray(c.apps) && c.apps.every((a) => a && a.id && a.name && a.repo);
+  return (
+    !!c &&
+    Array.isArray(c.apps) &&
+    c.apps.every((a) => a && PLAIN.test(a.id) && PLAIN.test(a.name) && /^[\w.-]+\/[\w.-]+$/.test(a.repo) && Array.isArray(a.platforms))
+  );
 }
 
 let toastId = 0;
@@ -259,8 +266,11 @@ export const useStore = create<State>((set, get) => ({
     if (u.state === "downloading") return;
     set({ selfUpdate: { ...u, state: "downloading", progress: null } });
     try {
-      await installSelfUpdate((progress) => set((s) => ({ selfUpdate: s.selfUpdate && { ...s.selfUpdate, progress } })));
-      set((s) => ({ selfUpdate: s.selfUpdate && { ...s.selfUpdate, state: "ready", progress: 1 } }));
+      const installed = await installSelfUpdate((progress) =>
+        set((s) => ({ selfUpdate: s.selfUpdate && { ...s.selfUpdate, progress } })),
+      );
+      // The release may have changed since the banner appeared; only claim "ready" if it installed.
+      set((s) => ({ selfUpdate: installed && s.selfUpdate ? { ...s.selfUpdate, state: "ready", progress: 1 } : null }));
     } catch (e) {
       set({ selfUpdate: { ...u, state: "available" } });
       get().toast("error", `Appetizer update failed: ${errText(e)}`);
@@ -290,12 +300,17 @@ export const useStore = create<State>((set, get) => ({
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
 
+/** An unknown installed version (app found on disk, version unreadable) counts as outdated. */
+function outdated(latest: string, installed: string): boolean {
+  return !installed || isNewer(latest, installed);
+}
+
 /** Ids of installed apps whose latest stable release is newer than what's on disk. */
 export function pendingUpdates(s: Pick<State, "installed" | "releases">): string[] {
   return Object.values(s.installed)
     .filter((i) => {
       const r = s.releases[i.id];
-      return r?.status === "ok" && !!r.data.asset && !!i.version && isNewer(r.data.version, i.version);
+      return r?.status === "ok" && !!r.data.asset && outdated(r.data.version, i.version);
     })
     .map((i) => i.id);
 }
@@ -317,7 +332,7 @@ export function appStatus(s: State, app: CatalogApp): AppStatus {
     return installed ? { kind: "installed", installed } : { kind: "unavailable", reason: "Not for this platform" };
   }
   if (installed) {
-    if (rel?.status === "ok" && rel.data.asset && installed.version && isNewer(rel.data.version, installed.version)) {
+    if (rel?.status === "ok" && rel.data.asset && outdated(rel.data.version, installed.version)) {
       return { kind: "update", release: rel.data, installed };
     }
     return { kind: "installed", installed };

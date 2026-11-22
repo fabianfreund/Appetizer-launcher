@@ -240,7 +240,8 @@ mod platform {
         let mut stack = vec![dir.to_path_buf()];
         let mut first = None;
         while let Some(d) = stack.pop() {
-            for e in std::fs::read_dir(&d).ok()?.flatten() {
+            let Ok(entries) = std::fs::read_dir(&d) else { continue };
+            for e in entries.flatten() {
                 let p = e.path();
                 if p.is_dir() {
                     stack.push(p);
@@ -309,8 +310,12 @@ mod platform {
                 });
                 match uninstaller {
                     Some(u) => run(Command::new(u).arg("/S")).await.map(|_| ()),
-                    // Fall back to the system "Installed apps" page.
-                    None => open_with_system("ms-settings:appsfeatures").await,
+                    // No uninstaller next to the exe (e.g. MSI installs): hand over to Windows
+                    // and keep the app listed until it's really gone.
+                    None => {
+                        open_with_system("ms-settings:appsfeatures").await?;
+                        Err(Error::msg(format!("Finish removing {name} in Settings → Apps")))
+                    }
                 }
             }
         }
@@ -325,7 +330,12 @@ mod platform {
     }
 
     pub async fn reveal(path: &str) -> Result<()> {
-        Command::new("explorer").arg(format!("/select,{path}")).spawn()?;
+        use std::os::windows::process::CommandExt;
+        if path.is_empty() {
+            return Err(Error::msg("Could not find where the app is installed"));
+        }
+        // explorer parses /select itself; Rust's default quoting of the whole token breaks it.
+        std::process::Command::new("explorer").raw_arg(format!("/select,\"{path}\"")).spawn()?;
         Ok(())
     }
 
@@ -356,7 +366,15 @@ mod platform {
     }
 
     pub async fn quit(name: &str) {
-        let _ = Command::new("pkill").args(["-f", &format!("{}.AppImage", name.to_lowercase())]).output().await;
+        let pattern = format!("{}.AppImage", name.to_lowercase());
+        let _ = Command::new("pkill").args(["-f", &pattern]).output().await;
+        for _ in 0..20 {
+            let alive = Command::new("pgrep").args(["-f", &pattern]).output().await.map(|o| o.status.success()).unwrap_or(false);
+            if !alive {
+                return;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        }
     }
 
     pub async fn install(file: &Path, name: &str, _work: &Path) -> Result<Installed> {
@@ -366,8 +384,11 @@ mod platform {
                 let dir = apps_dir();
                 std::fs::create_dir_all(&dir)?;
                 let dest = dir.join(format!("{}.AppImage", name.to_lowercase()));
-                std::fs::copy(file, &dest)?;
-                std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755))?;
+                // Copy next to the target, then rename over it: never write into a running binary.
+                let staging = dest.with_extension("AppImage.appetizer-new");
+                std::fs::copy(file, &staging)?;
+                std::fs::set_permissions(&staging, std::fs::Permissions::from_mode(0o755))?;
+                std::fs::rename(&staging, &dest)?;
                 let entry = format!(
                     "[Desktop Entry]\nType=Application\nName={name}\nExec=\"{}\" %U\nTerminal=false\nCategories=Utility;\nX-Appetizer=true\n",
                     dest.display()

@@ -23,13 +23,16 @@ export async function checkSelfUpdate(currentVersion: string): Promise<SelfUpdat
   return pending ? { version: pending.version, state: "available", progress: null } : null;
 }
 
-/** Downloads and installs. On Windows the installer closes the app itself. */
-export async function installSelfUpdate(onProgress: (p: number | null) => void): Promise<void> {
+/**
+ * Downloads and installs. On Windows the installer closes the app itself.
+ * Returns false when the re-check finds no update any more (nothing was installed).
+ */
+export async function installSelfUpdate(onProgress: (p: number | null) => void): Promise<boolean> {
   // Re-check right before installing so the signature always matches the file that's
   // published now (a release asset may have been replaced since the last check).
   const { check } = await import("@tauri-apps/plugin-updater");
   pending = await check();
-  if (!pending) return;
+  if (!pending) return false;
   let total = 0;
   let got = 0;
   await pending.downloadAndInstall((e) => {
@@ -39,6 +42,7 @@ export async function installSelfUpdate(onProgress: (p: number | null) => void):
       onProgress(total ? got / total : null);
     }
   });
+  return true;
 }
 
 export async function restart(): Promise<void> {

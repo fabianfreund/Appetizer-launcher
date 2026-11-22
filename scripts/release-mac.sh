@@ -3,6 +3,7 @@
 # Windows and Linux are built by .github/workflows/release.yml when the tag is pushed.
 #
 #   pnpm release:mac          # full release of the version in tauri.conf.json
+#                             # (CI makes a draft with Windows/Linux; this adds macOS and publishes)
 #   SKIP_UPLOAD=1 pnpm release:mac
 #   NOTARIZE=0 pnpm release:mac   # signed only, quick local test
 #
@@ -74,13 +75,26 @@ fi
 ls -lh "$DMG" "$TARBALL"
 [[ -n "${SKIP_UPLOAD:-}" ]] && { echo "Artifacts in $OUT"; exit 0; }
 
-# Tag → CI builds Windows/Linux and publishes. Wait for it so its latest.json is final.
+# Tag → CI builds Windows/Linux into a draft release. Wait for that run so its latest.json is final.
+TAG_ON_REMOTE=$(git ls-remote --tags origin "refs/tags/$TAG" | wc -l | tr -d ' ')
+BEFORE=$(gh run list -R "$REPO" --workflow release.yml --branch "$TAG" --limit 20 --json databaseId -q '.[].databaseId' | sort)
 if ! git rev-parse "$TAG" >/dev/null 2>&1; then git tag -a "$TAG" -m "Appetizer $TAG"; fi
 git push origin "$TAG"
 echo "▸ Waiting for the Windows/Linux build of $TAG"
-sleep 10
-RUN=$(gh run list -R "$REPO" --workflow release.yml --branch "$TAG" --limit 1 --json databaseId -q '.[0].databaseId')
-gh run watch "$RUN" -R "$REPO" --exit-status >/dev/null
+RUN=""
+for _ in $(seq 1 30); do
+  RUNS=$(gh run list -R "$REPO" --workflow release.yml --branch "$TAG" --limit 20 --json databaseId -q '.[].databaseId' | sort)
+  if [[ "$TAG_ON_REMOTE" == "0" ]]; then
+    RUN=$(comm -13 <(echo "$BEFORE") <(echo "$RUNS") | tail -1) # a run that didn't exist before the push
+  else
+    RUN=$(echo "$RUNS" | tail -1) # tag was already pushed (rerun): use its latest run
+  fi
+  [[ -n "$RUN" ]] && break
+  sleep 10
+done
+[[ -n "$RUN" ]] || { echo "No Release workflow run found for $TAG" >&2; exit 1; }
+gh run watch "$RUN" -R "$REPO" --exit-status >/dev/null || {
+  echo "Windows/Linux build failed: gh run view $RUN -R $REPO --log-failed" >&2; exit 1; }
 
 gh release upload "$TAG" -R "$REPO" "$DMG" "$TARBALL" "$TARBALL.sig" --clobber
 
@@ -94,4 +108,7 @@ SIG="$SIG" URL="$URL" node -e '
   fs.writeFileSync(f, JSON.stringify(j, null, 2));
 ' "$OUT/latest.json"
 gh release upload "$TAG" -R "$REPO" "$OUT/latest.json" --clobber
+
+# Everything is in place: publish, which makes it the update for installed copies.
+gh release edit "$TAG" -R "$REPO" --draft=false --latest >/dev/null
 echo "✓ Released $TAG: https://github.com/$REPO/releases/tag/$TAG"

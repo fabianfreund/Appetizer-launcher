@@ -14,8 +14,9 @@ Read first: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (architecture, releasing,
 
 ## Releasing (summary)
 
+0. CI (`.github/workflows/ci.yml`) must be green: it's the only compile check for the Windows/Linux code paths.
 1. Bump version in `package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`; `cargo check` to update `Cargo.lock`; commit + push.
-2. `pnpm release:mac` (≈15–20 min): builds a universal macOS app locally, signs with "Developer ID Application: Digital Vibes GmbH (8HFX6YPXXN)", notarizes with keychain profile `splatcraft`, tags + pushes `v<version>`, waits for CI (Windows + Linux via `.github/workflows/release.yml`), uploads Mac files and merges them into `latest.json`.
+2. `pnpm release:mac` (≈15–20 min): builds a universal macOS app locally, signs with "Developer ID Application: Digital Vibes GmbH (8HFX6YPXXN)", notarizes with keychain profile `splatcraft`, tags + pushes `v<version>`, waits for the Release workflow (Windows + Linux into a **draft**), uploads Mac files, merges them into `latest.json`, then publishes.
 3. Verify: download the DMG, `spctl -a -t open --context context:primary-signature -vv` → "Notarized Developer ID"; `latest.json` lists darwin, windows and linux.
 
 Mac builds are always local (user preference). Don't commit while a release is running: the tag is made from HEAD at the end.

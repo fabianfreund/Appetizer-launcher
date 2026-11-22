@@ -1,12 +1,12 @@
 # Builds Appetizer for Windows and Linux when a version tag (v1.2.3) is pushed,
-# uploads the installers plus signed updater files (latest.json) to a GitHub release,
-# then publishes it. macOS is built, signed and notarized locally: scripts/release-mac.sh.
+# and uploads the installers plus signed updater files (latest.json) to a draft release.
+# macOS is built, signed and notarized locally by scripts/release-mac.sh, which adds the
+# Mac files and publishes the release once everything is there.
 name: Release
 
 on:
   push:
     tags: ["v*"]
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -66,11 +66,3 @@ jobs:
           includeUpdaterJson: true
           args: ${{ matrix.args }}
 
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "${{ github.ref_name }}" --repo "${{ github.repository }}" --draft=false --latest

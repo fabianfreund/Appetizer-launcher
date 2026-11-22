@@ -41,12 +41,13 @@ macOS is built, signed and notarized **locally** (same setup as SplatCraft). Win
 
 ### Steps
 
-1. Bump the version in all three files (they must match, the script checks):
+1. Make sure **CI is green** on `main` (Actions → CI: build, clippy and tests on macOS, Windows and Linux). Windows and Linux code can't be compiled on a Mac, so CI is the only check for it before the release build.
+2. Bump the version in all three files (they must match, the script checks):
    - `package.json` → `"version"`
    - `src-tauri/Cargo.toml` → `version`
    - `src-tauri/tauri.conf.json` → `"version"`
-2. Commit (the script refuses a dirty working tree).
-3. Run:
+3. Commit and push (the script refuses a dirty working tree).
+4. Run:
    ```bash
    pnpm release:mac
    ```
@@ -54,8 +55,10 @@ macOS is built, signed and notarized **locally** (same setup as SplatCraft). Win
    1. build a universal (Apple Silicon + Intel) app and DMG, signed with **Developer ID Application: Digital Vibes GmbH (8HFX6YPXXN)**
    2. notarize and staple the app, then the DMG
    3. make the signed updater bundle (`Appetizer_universal.app.tar.gz` + `.sig`)
-   4. tag `v<version>` and push it, which starts the **Release** workflow (Windows `.exe`/`.msi`, Linux `.AppImage`/`.deb`/`.rpm`, `latest.json`). The workflow publishes the release.
-   5. wait for that workflow, upload the Mac files, and add the macOS entries to `latest.json`
+   4. tag `v<version>` and push it, which starts the **Release** workflow. It builds Windows (`.exe`, `.msi`) and Linux (`.AppImage`, `.deb`, `.rpm`) into a **draft** release with a `latest.json`
+   5. wait for that workflow, upload the Mac files, add the macOS entries to `latest.json`, then **publish** the release
+
+Nothing is public until step 5, so installed copies never see a release without its Mac files.
 
 Installed copies pick up the update on their next check.
 
@@ -104,8 +107,8 @@ spctl -a -t open --context context:primary-signature -vv /tmp/check/*.dmg   # "N
 ### If something fails
 
 - **Notarization rejected:** the script prints the notary log. `xcrun notarytool log <submission-id> --keychain-profile splatcraft` shows the details.
-- **Workflow failed:** fix it, delete the tag and draft (`git push --delete origin v<version>`, `gh release delete v<version>`), and run `pnpm release:mac` again.
-- **Mac files missing from a published release:** run the script again. It reuses the existing tag and replaces the uploads.
+- **Windows/Linux workflow failed:** the script stops and prints the command for the failed log. Nothing was published. Fix it, delete the tag and the draft (`git push --delete origin v<version> && git tag -d v<version>`, `gh release delete v<version>`), commit, and run `pnpm release:mac` again.
+- **Script stopped after CI succeeded** (upload or network error): run it again. It reuses the existing tag, picks up the finished run, replaces the uploads and publishes.
 
 ## Where things are configured
 
@@ -132,7 +135,8 @@ scripts/
   release-mac.sh      local macOS build, sign, notarize, upload
   make-icon.mjs       public/logo.svg → src-tauri/icons/source.png
 .github/workflows/
-  release.yml         Windows + Linux builds on tag push
+  ci.yml              build, clippy, tests on macOS/Windows/Linux for every push
+  release.yml         Windows + Linux release builds (draft) on tag push
 src-tauri/src/
   github.rs           release lookup and asset picking
   installer.rs        per-OS install / uninstall / launch / detect

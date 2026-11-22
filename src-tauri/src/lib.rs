@@ -35,6 +35,25 @@ struct AppRef {
     patterns: Vec<String>,
 }
 
+impl AppRef {
+    /// `id` and `name` come from a remote catalog and end up in file paths
+    /// (work dirs, install dirs, desktop entries), so only allow plain names.
+    fn validate(&self) -> Result<()> {
+        let plain = |s: &str| {
+            !s.trim().is_empty()
+                && s.len() <= 64
+                && s != "."
+                && s != ".."
+                && !s.starts_with('.')
+                && s.chars().all(|c| c.is_alphanumeric() || " -_.+".contains(c))
+        };
+        if !plain(&self.id) || !plain(&self.name) {
+            return Err(Error::msg(format!("Invalid app id or name in catalog: \"{}\"", self.id)));
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Progress<'a> {
@@ -121,7 +140,7 @@ async fn installed_apps(
         keep
     });
     for app in &known {
-        if store.installed.contains_key(&app.id) {
+        if app.validate().is_err() || store.installed.contains_key(&app.id) {
             continue;
         }
         if let Some((path, version)) = installer::detect(&app.name).await {
@@ -168,6 +187,7 @@ fn mark_busy<'a>(state: &'a AppState, id: &str) -> Result<BusyGuard<'a>> {
 
 #[tauri::command]
 async fn install_app(handle: AppHandle, state: State<'_, AppState>, app: AppRef) -> Result<InstalledApp> {
+    app.validate()?;
     let _guard = mark_busy(&state, &app.id)?;
     let emit = |phase: &str, received: u64, total: u64| {
         let _ = handle.emit("install-progress", Progress { id: &app.id, phase, received, total });
@@ -241,6 +261,7 @@ async fn install_app(handle: AppHandle, state: State<'_, AppState>, app: AppRef)
 
 #[tauri::command]
 async fn uninstall_app(state: State<'_, AppState>, app: AppRef) -> Result<()> {
+    app.validate()?;
     let _guard = mark_busy(&state, &app.id)?;
     let entry = state.store.lock().await.installed.get(&app.id).cloned();
     if let Some(e) = entry {
