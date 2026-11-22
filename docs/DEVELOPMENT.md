@@ -6,11 +6,17 @@
 pnpm install
 pnpm app          # runs the desktop app (tauri dev)
 pnpm dev          # UI only in a browser, with a mocked backend
-pnpm release:mac  # release, see "Releasing Appetizer" below
+pnpm build        # type-check + build the UI
+pnpm catalog …    # manage catalog.json, see docs/ADDING-APPS.md
 pnpm icons        # regenerate app icons from public/logo.svg
+pnpm release:mac  # release, see "Releasing Appetizer" below
 ```
 
-Rust tests: `cd src-tauri && cargo test`.
+Rust tests and lint: `cd src-tauri && cargo test && cargo clippy --all-targets`.
+
+The dev server runs on port **1437** (`vite.config.ts` and `devUrl` in `tauri.conf.json` must match).
+
+App data (installed apps, settings) lives in the Tauri app data dir, on macOS `~/Library/Application Support/app.appetizer.launcher/` (`installed.json`, plus `settings.json` once a setting is changed). Delete them to reset.
 
 ## How installing works
 
@@ -25,7 +31,7 @@ If the app is running during an update, it is quit first and reopened afterwards
 ## Updates
 
 - **Catalog apps:** on launch and every N hours (Settings), Appetizer checks each installed app's latest release. With **Update apps automatically** on (the default), apps Appetizer installed are updated in the background. Apps it only found on disk get an Update button instead.
-- **Appetizer itself:** uses the Tauri updater. It reads `latest.json` from this repo's latest release and checks the update signature. On macOS and Linux it installs in the background and shows a "Restart" banner. On Windows it asks first, because the installer closes the app.
+- **Appetizer itself:** uses the Tauri updater (`src/lib/selfUpdate.ts`). It reads `https://github.com/fabianfreund/Appetizer-launcher/releases/latest/download/latest.json` and checks the minisign signature against the public key built into the app. On macOS and Linux it installs in the background and shows a "Restart" banner in the sidebar. On Windows it asks first, because the installer closes the app. Right before installing it checks again, so a release file replaced in the meantime can't cause a signature mismatch.
 
 GitHub allows 60 unauthenticated API calls per hour. Results are cached for 10 minutes. Set `GITHUB_TOKEN` in the environment to raise the limit during development.
 
@@ -74,17 +80,53 @@ Every update is signed with a minisign key so installed copies only accept real 
 
 **Keep a backup of the private key** (for example in your password manager). If it is lost, existing installs can't be updated anymore and users have to download Appetizer again by hand.
 
+### Verify a release
+
+After `pnpm release:mac` finishes:
+
+```bash
+gh release view v<version> --json assets -q '.assets[].name'   # 14 files incl. latest.json
+gh release download v<version> -p "*.dmg" -D /tmp/check
+spctl -a -t open --context context:primary-signature -vv /tmp/check/*.dmg   # "Notarized Developer ID"
+```
+
+`latest.json` must list `darwin-aarch64`, `darwin-x86_64`, `windows-x86_64` and `linux-x86_64`. The real test: an installed older copy shows the update banner and updates itself.
+
+### Gotchas (learned the hard way)
+
+- **macOS tar adds hidden `._*` files** for extended attributes. The Tauri updater can't unpack them ("failed to unpack `._Appetizer.app`"). The script builds the updater bundle with `COPYFILE_DISABLE=1 tar --no-mac-metadata --no-xattrs` and refuses to upload if any remain. macOS's own `tar -t` hides these entries, so check with Python's `tarfile` if in doubt.
+- **Don't run two Mac releases at once** (e.g. Appetizer and OneShot). DMG creation drives Finder via AppleScript and fails ("Can't set statusbar visible"). If it happens, detach leftover `/Volumes/dmg.*` images with `hdiutil detach` and run again. Nothing is published before the tag is pushed.
+- **Replacing a release asset by hand** (`gh release upload --clobber`) also needs the matching signature in `latest.json` (sign with `pnpm tauri signer sign <file>` using `~/.tauri/appetizer.key`). Running copies that checked before the swap must re-check (restart) or they see "signature verification failed".
+- **Use rustup's cargo.** Homebrew's Rust lacks the `x86_64-apple-darwin` target. The script puts `~/.cargo/bin` first in `PATH`.
+- **Version in three places** (`package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`). Run `cargo check` after bumping so `Cargo.lock` updates before you commit.
+- **Windows builds are not code-signed** yet, so SmartScreen shows "Windows protected your PC". Fixing it needs a Windows code-signing certificate.
+
 ### If something fails
 
 - **Notarization rejected:** the script prints the notary log. `xcrun notarytool log <submission-id> --keychain-profile splatcraft` shows the details.
 - **Workflow failed:** fix it, delete the tag and draft (`git push --delete origin v<version>`, `gh release delete v<version>`), and run `pnpm release:mac` again.
 - **Mac files missing from a published release:** run the script again. It reuses the existing tag and replaces the uploads.
 
+## Where things are configured
+
+| What | Where |
+|---|---|
+| App catalog (live) | `catalog.json` on `main`, fetched at startup. URL: `DEFAULT_CATALOG_URL` in `src-tauri/src/store.rs`, can be changed in Settings |
+| Appetizer's own repo | `LAUNCHER_REPO` in `src/lib/api.ts`, updater endpoint in `tauri.conf.json` |
+| Buy me a coffee link | `SUPPORT_URL` in `src/components/Topbar.tsx` (pill in the header, left of the refresh button) |
+| Window / title bar (macOS traffic lights) | `app.windows` in `tauri.conf.json`, `.sidebar--mac` in `src/styles.css` |
+| Allowed network hosts (CSP) | `app.security.csp` in `tauri.conf.json` |
+| Logo | `public/logo.svg` (also the sidebar logo). Run `pnpm icons` after editing |
+
 ## Layout
 
 ```
 catalog.json          app catalog (also served remotely)
-src/                  React UI (store.ts holds state, lib/api.ts talks to Rust)
+src/                  React UI
+  store.ts            all state (zustand): catalog, releases, installs, updates
+  lib/api.ts          calls into Rust; a browser mock when run with `pnpm dev`
+  lib/selfUpdate.ts   Appetizer updating itself
+  views/, components/ pages and UI parts
 scripts/
   catalog.mjs         pnpm catalog add/check/remove
   release-mac.sh      local macOS build, sign, notarize, upload

@@ -34,6 +34,10 @@ Get the latest version from [Releases](https://github.com/fabianfreund/Appetizer
 
 Want your app in Appetizer? Every app is a public GitHub repo with normal releases. See [Adding apps](docs/ADDING-APPS.md).
 
+## Support
+
+Appetizer and its apps are free. If they save you time, you can [buy me a coffee](https://buymeacoffee.com/fabianbuilds) ☕
+
 ## Build from source
 
 ```bash
