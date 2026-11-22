@@ -1,6 +1,6 @@
-# Builds Appetizer for every platform when a version tag (v1.2.3) is pushed,
+# Builds Appetizer for Windows and Linux when a version tag (v1.2.3) is pushed,
 # uploads the installers plus signed updater files (latest.json) to a GitHub release,
-# then publishes the release so installed copies pick up the update.
+# then publishes it. macOS is built, signed and notarized locally: scripts/release-mac.sh.
 name: Release
 
 on:
@@ -17,12 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            args: --target aarch64-apple-darwin
-            rust-targets: aarch64-apple-darwin
-          - platform: macos-latest
-            args: --target x86_64-apple-darwin
-            rust-targets: x86_64-apple-darwin
           - platform: ubuntu-22.04
             args: ""
             rust-targets: ""

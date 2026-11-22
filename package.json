@@ -1,7 +1,7 @@
 {
   "name": "appetizer",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "app": "tauri dev",
-    "icons": "node scripts/make-icon.mjs && tauri icon src-tauri/icons/source.png"
+    "icons": "node scripts/make-icon.mjs && tauri icon src-tauri/icons/source.png",
+    "release:mac": "scripts/release-mac.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.5",
