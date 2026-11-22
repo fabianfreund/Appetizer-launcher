@@ -8,15 +8,23 @@
       "description": "A pleasing screenshot tool and image viewer. Grab an area, a window or the whole screen, then annotate with arrows, text, counters, highlights and pixelation. Pin captures on top, drag them straight into any app, and browse folders of images with a fast viewer.",
       "repo": "fabianfreund/OneShot",
       "category": "Productivity",
-      "platforms": ["macos", "windows"],
-      "accent": "#FF6A3D",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "accent": "#FF5A7A",
       "icon": "https://raw.githubusercontent.com/fabianfreund/OneShot/HEAD/build/icon.png",
       "featured": true,
-      "highlights": ["Area, window & full-screen capture", "Annotate, crop, pixelate", "Pin captures on top", "Fast image viewer"],
-      "assets": {
-        "macos": ["\\.dmg$", "mac\\.zip$"],
-        "windows": ["setup.*\\.exe$", "\\.exe$"]
-      }
+      "highlights": [
+        "Area, window & full-screen capture",
+        "Annotate, crop, pixelate",
+        "Pin captures on top",
+        "Fast image viewer"
+      ],
+      "screenshots": [
+        "https://raw.githubusercontent.com/fabianfreund/OneShot/HEAD/docs/assets/screenshot-editor.png"
+      ]
     }
   ]
 }

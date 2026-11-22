@@ -32,6 +32,7 @@ export function AppDetail({ id }: { id: string }) {
   const os = useStore((s) => s.platform?.os);
   const { uninstall, reveal, launch } = useStore.getState();
   const [confirm, setConfirm] = useState(false);
+  const [zoomed, setZoomed] = useState<string | null>(null);
 
   if (!app) return <div className="page"><div className="empty"><p>This app is no longer in the catalog.</p></div></div>;
 
@@ -96,6 +97,17 @@ export function AppDetail({ id }: { id: string }) {
             </ul>
           )}
 
+          {!!app.screenshots?.length && (
+            <>
+              <h2 className="section-title">Screenshots</h2>
+              <div className="shots">
+                {app.screenshots.map((src) => (
+                  <img key={src} src={src} alt="" loading="lazy" onClick={() => setZoomed(src)} draggable={false} />
+                ))}
+              </div>
+            </>
+          )}
+
           <h2 className="section-title">What’s new</h2>
           {rel ? (
             <div className="whatsnew">
@@ -146,6 +158,11 @@ export function AppDetail({ id }: { id: string }) {
           )}
         </aside>
       </div>
+      {zoomed && (
+        <div className="lightbox" onClick={() => setZoomed(null)}>
+          <img src={zoomed} alt="" />
+        </div>
+      )}
     </div>
   );
 }

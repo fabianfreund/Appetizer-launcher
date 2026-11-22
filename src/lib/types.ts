@@ -13,6 +13,8 @@ export interface CatalogApp {
   accent?: string;
   featured?: boolean;
   highlights?: string[];
+  /** Image URLs shown on the app page. */
+  screenshots?: string[];
   /** Per-OS regexes matched against release asset names, in order of preference. */
   assets?: Partial<Record<OS, string[]>>;
 }

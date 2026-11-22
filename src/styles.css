@@ -510,18 +510,14 @@ p {
 }
 
 .hero__art .app-icon {
-  box-shadow: 0 24px 48px color-mix(in srgb, var(--accent) 35%, transparent), 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-/* ───────── app icon ───────── */
-
-.app-icon {
   flex: none;
-  object-fit: cover;
-  display: block;
+  display: grid;
+  place-items: center;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--accent) 22%, transparent)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
 }
 
-.app-icon--mono {
+.app-icon__tile {
   display: grid;
   place-items: center;
   color: #fff;
@@ -530,7 +526,6 @@ p {
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 50%),
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 80%, #ffd27a), var(--accent) 55%, color-mix(in srgb, var(--accent) 70%, #b0124d));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 /* ───────── cards ───────── */
@@ -558,10 +553,6 @@ p {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
-}
-
-.card .app-icon {
-  box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .card__body {
@@ -985,10 +976,6 @@ p {
   z-index: -1;
 }
 
-.detail__head .app-icon {
-  box-shadow: 0 18px 40px color-mix(in srgb, var(--accent) 30%, transparent), 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .detail__title h1 {
   margin-top: 2px;
   font-family: var(--font-display);
@@ -1090,6 +1077,47 @@ p {
   border-radius: 50%;
   flex: none;
   background: var(--accent);
+}
+
+.shots {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+}
+
+.shots img {
+  height: 300px;
+  max-width: 100%;
+  flex: none;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  scroll-snap-align: start;
+  cursor: zoom-in;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  background: rgba(10, 8, 6, 0.72);
+  backdrop-filter: blur(6px);
+  animation: fade-in 0.18s ease both;
+  cursor: zoom-out;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
 }
 
 .whatsnew {
