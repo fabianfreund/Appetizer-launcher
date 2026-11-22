@@ -1,23 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFB347"/>
-      <stop offset="0.55" stop-color="#FF6A3D"/>
-      <stop offset="1" stop-color="#E8336E"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFA94D"/>
+      <stop offset="1" stop-color="#FF5A1F"/>
     </linearGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity=".28"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#9A2A00" flood-opacity=".22"/>
+    </filter>
   </defs>
   <rect x="80" y="80" width="864" height="864" rx="200" fill="url(#bg)"/>
-  <rect x="80" y="80" width="864" height="432" rx="200" fill="url(#shine)"/>
-  <!-- plate -->
-  <path d="M232 600 h560 a280 140 0 0 1 -560 0z" fill="#fff"/>
-  <!-- three bites -->
-  <circle cx="400" cy="520" r="78" fill="#fff" opacity=".95"/>
-  <circle cx="624" cy="520" r="78" fill="#fff" opacity=".95"/>
-  <circle cx="512" cy="440" r="92" fill="#fff"/>
-  <!-- leaf -->
-  <path d="M512 352 c10 -70 60 -110 130 -112 c-6 70 -56 112 -130 112z" fill="#fff"/>
+  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" filter="url(#soft)">
+    <!-- fork: tines top-left -->
+    <g transform="translate(512 500) rotate(-33)">
+      <path d="M0 -110 V300" stroke-width="54"/>
+      <path d="M-54 -320 V-190 a54 54 0 0 0 108 0 V-320" stroke-width="30"/>
+      <path d="M0 -320 V-150" stroke-width="30"/>
+    </g>
+    <!-- knife: blade top-right -->
+    <g transform="translate(512 500) rotate(33)">
+      <path d="M0 60 V300" stroke-width="54"/>
+      <path d="M-18 80 V-200 C-18 -272 8 -310 30 -316 V80 Z" fill="#fff" stroke-width="18"/>
+    </g>
+    <!-- plate -->
+    <path d="M232 664 C300 702 372 718 512 718 C652 718 724 702 792 664" stroke-width="58"/>
+  </g>
 </svg>
