@@ -2,6 +2,7 @@
 // Manage catalog.json from GitHub repos.
 //
 //   pnpm catalog add <owner/repo> [--category Productivity] [--featured] [--accent "#FF6A3D"]
+//                    [--manifest ../App/appetizer.json]   # local manifest, e.g. before the repo is pushed
 //   pnpm catalog check            # every app: repo reachable, stable release, a download per platform
 //   pnpm catalog remove <id>
 //
@@ -110,24 +111,30 @@ function normalizeRepo(input) {
 async function add(args) {
   const { flags, rest } = parseFlags(args);
   const repoName = normalizeRepo(rest[0]);
-  const info = await gh(`/repos/${repoName}`);
-  if (!info) throw new Error(`Repo ${repoName} not found (is it public?)`);
-  if (info.private) throw new Error(`${repoName} is private. Appetizer needs public releases.`);
+  const local = flags.manifest ? JSON.parse(readFileSync(flags.manifest, "utf8")) : null;
+  let info = await gh(`/repos/${repoName}`);
+  if (info?.private) throw new Error(`${repoName} is private. Appetizer needs a public repo.`);
+  if (!info) {
+    if (!local) throw new Error(`Repo ${repoName} not found (is it public?). Pass --manifest <path> to add it before it's pushed.`);
+    console.log(`  ! ${repoName} isn't on GitHub yet: using ${flags.manifest}. It shows as "Soon" until it has a release.`);
+    const [, name] = repoName.split("/");
+    info = { full_name: repoName, name, description: "", private: false, missing: true };
+  }
   const repo = info.full_name;
 
-  let manifest = {};
-  const m = await raw(repo, "appetizer.json");
+  let manifest = local ?? {};
+  const m = local ? null : await raw(repo, "appetizer.json");
   if (m) {
     manifest = await m.json();
     console.log("  found appetizer.json in the repo");
-  }
+  } else if (local) console.log(`  using ${flags.manifest}`);
 
-  const release = await gh(`/repos/${repo}/releases/latest`);
+  const release = info.missing ? null : await gh(`/repos/${repo}/releases/latest`);
   const assets = release?.assets ?? [];
   const detected = OSES.filter((os) => matchesFor(os, assets, manifest.assets?.[os]).length);
 
   let icon = resolve(repo, manifest.icon);
-  if (!icon) {
+  if (!icon && !info.missing) {
     for (const p of ICON_PATHS) {
       if (await raw(repo, p)) {
         icon = `https://raw.githubusercontent.com/${repo}/HEAD/${p}`;

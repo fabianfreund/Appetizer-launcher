@@ -12,6 +12,10 @@ git commit -am "Add <app>" && git push                 # live on next launch of 
 
 Other commands: `pnpm catalog remove <id>`.
 
+**Adding an app before it's on GitHub** (so it's ready the moment it's released): `pnpm catalog add owner/repo --manifest ../App/appetizer.json`. The entry points at the future repo; the app shows as "Soon" until the repo exists and has a stable release, then becomes installable with no further changes. Icon and screenshot links start working once the repo is pushed (a letter tile is shown until then).
+
+An app with no release yet always shows as "Soon", so it's safe to list apps early.
+
 ## `appetizer.json` in the app repo (recommended)
 
 This lets each app control its own listing: icon, screenshots and texts. Paths are relative to the app repo's root.

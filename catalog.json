@@ -25,6 +25,52 @@
       "screenshots": [
         "https://raw.githubusercontent.com/fabianfreund/OneShot/HEAD/docs/assets/screenshot-editor.png"
       ]
+    },
+    {
+      "id": "clockodile",
+      "name": "Clockodile",
+      "tagline": "Track time, bill clients, export clean PDF timesheets.",
+      "description": "A calm, fast time tracker that lives in your menu bar. Start a timer or log time in one line (\"Design review 1h30 @acme #meeting\"), see your week at a glance, mark entries as billed or paid, and export polished PDF timesheets or CSV. Idle detection, rates per client and project, rounding, and all data stays on your computer.",
+      "repo": "fabianfreund/Clockodile",
+      "category": "Productivity",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "icon": "https://raw.githubusercontent.com/fabianfreund/Clockodile/HEAD/build/icon.png",
+      "accent": "#1FAE6B",
+      "highlights": [
+        "Menu-bar timer with idle detection",
+        "One-line quick entry",
+        "Billed / paid status per entry",
+        "PDF timesheets and CSV export"
+      ],
+      "screenshots": [
+        "https://raw.githubusercontent.com/fabianfreund/Clockodile/HEAD/docs/assets/screenshot-track.png",
+        "https://raw.githubusercontent.com/fabianfreund/Clockodile/HEAD/docs/assets/screenshot-reports.png"
+      ]
+    },
+    {
+      "id": "yaptap",
+      "name": "YapTap",
+      "tagline": "Hold a key, talk, let go. Fully local dictation.",
+      "description": "Free, open-source dictation that runs entirely on your computer. Hold a key, speak, and clean text appears wherever your cursor is. Speech recognition runs locally with NVIDIA Parakeet or OpenAI Whisper: no cloud, no account, no word limits.",
+      "repo": "fabianfreund/YapTap",
+      "category": "Productivity",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "icon": "https://raw.githubusercontent.com/fabianfreund/YapTap/HEAD/build/icon.png",
+      "accent": "#7B61FF",
+      "highlights": [
+        "Hold or tap to dictate in any app",
+        "100% local, works offline",
+        "English, German and 23+ more languages",
+        "Dictionary, replacements and history"
+      ]
     }
   ]
 }
