@@ -1,6 +1,6 @@
 [package]
 name = "appetizer"
-version = "0.1.4"
+version = "0.1.5"
 description = "Free, open-source app launcher for great utility apps"
 edition = "2021"
 

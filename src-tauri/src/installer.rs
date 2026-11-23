@@ -126,16 +126,36 @@ mod platform {
 
     async fn place_bundle(src: &Path) -> Result<PathBuf> {
         let file = src.file_name().ok_or_else(|| Error::msg("Bad app bundle"))?;
-        let dest = applications_dir().join(file);
-        let staging = dest.with_extension("appetizer-staging");
+        let dir = applications_dir();
+        let dest = dir.join(file);
+        // Copy into a hidden folder first, keeping the ".app" name, then move it into place.
+        // A visible half-copied folder (e.g. "Clockodile.appetizer-staging") gets picked up by
+        // app indexers like Raycast, which then list the stale folder and its helper apps.
+        let staging_dir = dir.join(".appetizer-staging");
+        let staging = staging_dir.join(file);
         let _ = std::fs::remove_dir_all(&staging);
-        run(Command::new("ditto").arg(src).arg(&staging)).await?;
+        let _ = std::fs::remove_dir_all(dest.with_extension("appetizer-staging")); // left over from <= 0.1.4
+        std::fs::create_dir_all(&staging_dir)?;
+        let copied = run(Command::new("ditto").arg(src).arg(&staging)).await;
+        if let Err(e) = copied {
+            let _ = std::fs::remove_dir_all(&staging_dir);
+            return Err(e);
+        }
         if dest.exists() {
             std::fs::remove_dir_all(&dest)?;
         }
         std::fs::rename(&staging, &dest)?;
+        let _ = std::fs::remove_dir_all(&staging_dir);
         let _ = Command::new("xattr").args(["-dr", "com.apple.quarantine"]).arg(&dest).output().await;
+        register(&dest).await;
         Ok(dest)
+    }
+
+    /// Tells Launch Services and Spotlight about the new bundle so launchers see it right away.
+    async fn register(app: &Path) {
+        const LSREGISTER: &str = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
+        let _ = Command::new(LSREGISTER).arg("-f").arg(app).output().await;
+        let _ = Command::new("mdimport").arg(app).output().await;
     }
 
     pub async fn install(file: &Path, name: &str, work: &Path) -> Result<Installed> {
