@@ -71,6 +71,33 @@
         "English, German and 23+ more languages",
         "Dictionary, replacements and history"
       ]
+    },
+    {
+      "id": "wtf",
+      "name": "WTF",
+      "tagline": "Open any file. View, edit and convert it.",
+      "description": "What The File opens almost anything in a blink: images, PDFs, videos, DXF drawings, 3D models, archives and code. Fix small things right in the viewer and convert to the format you need. Free, local, no account.",
+      "repo": "fabianfreund/WTF",
+      "category": "Utilities",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "icon": "https://raw.githubusercontent.com/fabianfreund/WTF/HEAD/build/icon.png",
+      "accent": "#F0364F",
+      "highlights": [
+        "Opens almost any file",
+        "DXF, 3D models and MKV included",
+        "Convert with one shortcut",
+        "Lives in the menu bar"
+      ],
+      "screenshots": [
+        "https://raw.githubusercontent.com/fabianfreund/WTF/HEAD/docs/assets/screenshot-cad.png",
+        "https://raw.githubusercontent.com/fabianfreund/WTF/HEAD/docs/assets/screenshot-convert.png",
+        "https://raw.githubusercontent.com/fabianfreund/WTF/HEAD/docs/assets/screenshot-3d.png",
+        "https://raw.githubusercontent.com/fabianfreund/WTF/HEAD/docs/assets/screenshot-pdf.png"
+      ]
     }
   ]
 }
