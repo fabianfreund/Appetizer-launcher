@@ -57,6 +57,14 @@ export function AppDetail({ id }: { id: string }) {
               </button>
             )}
           </div>
+          {release?.status === "error" && !installed && (
+            <p className="detail__error" role="alert">
+              Couldn't load the latest release: {release.error}{" "}
+              <button className="text-link" onClick={() => useStore.getState().loadReleases(true, [id])}>
+                Try again
+              </button>
+            </p>
+          )}
         </div>
       </section>
 

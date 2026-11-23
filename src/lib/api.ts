@@ -71,7 +71,7 @@ function write(key: string, v: unknown) {
   }
 }
 
-const defaultSettings: Settings = {
+export const defaultSettings: Settings = {
   autoUpdate: true,
   checkIntervalHours: 6,
   launchAfterInstall: false,

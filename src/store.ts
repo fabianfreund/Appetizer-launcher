@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import bundledCatalog from "../catalog.json";
-import { api, onProgress, toRef } from "./lib/api";
+import { api, defaultSettings, onProgress, toRef } from "./lib/api";
 import type {
   Catalog,
   CatalogApp,
@@ -43,6 +43,8 @@ interface State {
   installed: Record<string, InstalledApp>;
   tasks: Record<string, Task>;
   settings: Settings | null;
+  /** Set when startup failed badly enough that the UI can't show anything. */
+  initError: string | null;
   selfUpdate: SelfUpdate | null;
   lastChecked: number | null;
   checking: boolean;
@@ -93,6 +95,7 @@ export const useStore = create<State>((set, get) => ({
   installed: {},
   tasks: {},
   settings: null,
+  initError: null,
   selfUpdate: null,
   lastChecked: null,
   checking: false,
@@ -101,17 +104,36 @@ export const useStore = create<State>((set, get) => ({
   toasts: [],
 
   async init() {
-    const [platform, settings] = await Promise.all([api.platform(), api.getSettings()]);
+    set({ initError: null });
+    let platform: PlatformInfo;
+    try {
+      platform = await api.platform();
+    } catch (e) {
+      set({ initError: `Could not talk to the Appetizer backend: ${errText(e)}` });
+      return;
+    }
+    let settings: Settings;
+    try {
+      settings = await api.getSettings();
+    } catch (e) {
+      // Settings are a convenience; don't leave the window empty because of them.
+      settings = { ...defaultSettings };
+      get().toast("error", `Could not load settings, using defaults: ${errText(e)}`);
+    }
     set({ platform, settings });
 
-    await onProgress((p) =>
-      set((s) => {
-        const tasks = { ...s.tasks };
-        if (p.phase === "done") delete tasks[p.id];
-        else tasks[p.id] = { phase: p.phase, received: p.received, total: p.total };
-        return { tasks };
-      }),
-    );
+    try {
+      await onProgress((p) =>
+        set((s) => {
+          const tasks = { ...s.tasks };
+          if (p.phase === "done") delete tasks[p.id];
+          else tasks[p.id] = { phase: p.phase, received: p.received, total: p.total };
+          return { tasks };
+        }),
+      );
+    } catch (e) {
+      get().toast("error", `Install progress won't be shown: ${errText(e)}`);
+    }
 
     // Remote catalog lets new apps show up without shipping a new Appetizer build.
     try {
@@ -121,9 +143,12 @@ export const useStore = create<State>((set, get) => ({
       /* keep bundled catalog */
     }
 
-    await get().refreshInstalled();
+    try {
+      await get().refreshInstalled();
+    } catch (e) {
+      get().toast("error", `Could not check installed apps: ${errText(e)}`);
+    }
     await get().loadReleases();
-
   },
 
   setView: (view) => set({ view, query: "" }),

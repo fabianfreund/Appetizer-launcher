@@ -1,6 +1,6 @@
 [package]
 name = "appetizer"
-version = "0.1.5"
+version = "0.1.6"
 description = "Free, open-source app launcher for great utility apps"
 edition = "2021"
 
@@ -15,7 +15,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "rustls-tls-native-roots"] }
 tokio = { version = "1", features = ["fs", "process", "sync", "time", "macros"] }
 futures-util = "0.3"
 regex = "1"

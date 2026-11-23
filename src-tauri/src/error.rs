@@ -4,7 +4,7 @@ use serde::{Serialize, Serializer};
 pub enum Error {
     #[error("{0}")]
     Msg(String),
-    #[error("Network error: {0}")]
+    #[error("Network error: {}", chain(.0))]
     Http(#[from] reqwest::Error),
     #[error("{0}")]
     Io(#[from] std::io::Error),
@@ -20,6 +20,22 @@ impl Error {
     pub fn msg(m: impl Into<String>) -> Self {
         Error::Msg(m.into())
     }
+}
+
+/// reqwest's own message ("error sending request for url ...") hides the real cause,
+/// e.g. a certificate or DNS failure, so append the whole source chain.
+fn chain(e: &reqwest::Error) -> String {
+    let mut out = e.to_string();
+    let mut src = std::error::Error::source(e);
+    while let Some(s) = src {
+        let msg = s.to_string();
+        if !out.contains(&msg) {
+            out.push_str(": ");
+            out.push_str(&msg);
+        }
+        src = s.source();
+    }
+    out
 }
 
 // Commands return errors to the UI as plain strings.
