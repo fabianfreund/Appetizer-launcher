@@ -6,7 +6,7 @@
 
 ![Appetizer: the Discover page](docs/assets/screenshot.png)
 
-> **Status:** early (v0.1.x). Available now: [OneShot](https://github.com/fabianfreund/OneShot), a screenshot tool, and [Clockodile](https://github.com/fabianfreund/Clockodile), a time tracker. YapTap (local dictation) and WTF (a viewer and converter for any file) are coming soon.
+> **Status:** early (v0.1.x). Available now: [OneShot](https://github.com/fabianfreund/OneShot), a screenshot tool, [Clockodile](https://github.com/fabianfreund/Clockodile), a time tracker, and [WTF](https://github.com/fabianfreund/WTF), a viewer and converter for any file. YapTap (local dictation) is coming soon.
 
 ## Download
 
@@ -33,7 +33,7 @@ Get the latest version from [Releases](https://github.com/fabianfreund/Appetizer
 | [OneShot](https://github.com/fabianfreund/OneShot) | Capture, annotate and beautify screenshots | macOS, Windows, Linux |
 | [Clockodile](https://github.com/fabianfreund/Clockodile) | Track time, bill clients, export clean PDF timesheets | macOS, Windows, Linux |
 | [YapTap](https://github.com/fabianfreund/YapTap) | Hold a key, talk, let go: fully local dictation *(coming soon)* | macOS, Windows, Linux |
-| [WTF](https://github.com/fabianfreund/WTF) | Open any file. View, edit and convert it *(coming soon)* | macOS, Windows, Linux |
+| [WTF](https://github.com/fabianfreund/WTF) | Open any file. View, edit and convert it | macOS, Windows, Linux |
 
 Want your app in Appetizer? Every app is a public GitHub repo with normal releases. See [Adding apps](docs/ADDING-APPS.md).
 
